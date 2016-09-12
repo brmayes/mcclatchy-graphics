@@ -1,0 +1,59 @@
+@font-face {
+  font-family: "McClatchy Slab";
+  font-style: normal;
+  font-weight: 200;
+  src: url("McClatchySlab-Light.woff") format("woff");
+}@font-face {
+  font-family: "McClatchy Slab";
+  font-style: normal;
+  font-weight: 400;
+  src: url("McClatchySlab-Regular.woff") format("woff");
+}
+@font-face {
+  font-family: "McClatchy Slab";
+  font-style: normal;
+  font-weight: 600;
+  src: url("McClatchySlab-Semibold.woff") format("woff");
+}
+@font-face {
+  font-family: "McClatchy Slab";
+  font-style: normal;
+  font-weight: 800;
+  src: url("McClatchySlab-Bold.woff") format("woff");
+}
+@font-face {
+  font-family: "McClatchy Sans";
+  font-style: normal;
+  font-weight: 200;
+  src: url("McClatchySans-Thin.woff") format("woff");
+}
+@font-face {
+  font-family: "McClatchy Sans";
+  font-style: normal;
+  font-weight: 400;
+  src: url("McClatchySans-Regular.woff") format("woff");
+}
+@font-face {
+  font-family: "McClatchy Sans";
+  font-style: normal;
+  font-weight: 500;
+  src: url("McClatchySans-Semibold.woff") format("woff");
+}
+@font-face {
+  font-family: "McClatchy Sans";
+  font-style: normal;
+  font-weight: 700;
+  src: url("McClatchySans-Black.woff") format("woff");
+}
+@font-face {
+  font-family: "McClatchy Sans Cond";
+  font-style: normal;
+  font-weight: 600;
+  src: url("McClatchySansCond-Semibold.woff") format("woff");
+}
+@font-face {
+  font-family: "Lyon";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Lyon Regular"), local("Lyon-Regular"), url("LyonTextWeb-Regular.woff") format("woff");
+}
