@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="description" content="Drawing Shapes W/ D3 -" />
+  <meta charset="utf-8">
+  <title>Matching Chart Size to Container Size: 2</title>
+  <!-- <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script> -->
+  <script src="d3.min.js" charset="utf-8"></script>
+
+  <style type="text/css">
+    /* CSS that makes chart responsive */
+
+    #chart {
+      max-width: 1000px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    #svg-container {
+      position: relative;
+      width: 100%;
+      padding-bottom: 100%;
+      overflow: hidden;
+    }
+
+    .svg-content-responsive {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    /* CSS that styles the chart */
+
+    rect {
+      fill: teal;
+    }
+
+    .axis text {
+      font: 14px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+    }
+
+    .rate-label {
+      font-family: sans-serif;
+      font-size: 12px;
+    }
+  </style>
+
+</head>
+
+<body>
+  <!-- <h3>Shift in Number of Insured Americans</h3> -->
+  <div id="chart"></div>
+
+
+  <script>
+    // Get the margin to width ratio as a percent
+    // using the margin object properties
+    function getRatio(side) {
+      return ((margin[side] / width) * 100) + "%";
+    }
+
+    // Simple example dataset
+    var letters = ["Trump", "Clinton"]
+    var numbers = [20.5, 9.6]
+
+    // var letters = ["Current", "Trump", "Clinton"]
+    // var numbers = [10.8, 20.5, 9.6]
+
+    // Declare Dimensions to create graph
+    // Margin is used to show x and y axes
+    // Size here is declared in pixels, although this
+    // defines the relative values, since the chart changes depending
+    // on container
+    var margin = {
+        left: 50,
+        top: 10,
+        right: 50,
+        bottom: 30
+      },
+      width = 700,
+      height = 400,
+      // marginRatio converts margin absolute values to
+      // percent values to keep SVG responsive
+      marginRatio = {
+        left: getRatio("left"),
+        top: getRatio("top"),
+        right: getRatio("right"),
+        bottom: getRatio("bottom")
+      },
+      barWidth = width / numbers.length;
+
+    var svg = d3.select("div#chart")
+      // Create div to act as SVG container
+      .append("div")
+      .attr("id", "svg-container")
+      // Add SVG that will contain Graph elements
+      .append("svg")
+      // Add margin to show axes
+      .style("padding", marginRatio.top + " " + marginRatio.right + " " + marginRatio.bottom + " " + marginRatio.left)
+      // Preserve aspect ratio xMinYmin ensures SVG fills #svg-container
+      .attr("preserveAspectRatio", "xMinYMin meet")
+      // Sets the viewbox, for more info on viewbox, combined with preveserveAspectRatio, this is what turns the bar chart
+      // into a responsive bar chart
+      .attr("viewBox", "0 0 " + (width + margin.left + margin.right) + " " + (height + margin.top + margin.bottom))
+      // Id to target with CSS
+      .attr("id", "svg-content-responsive");
+
+    // svg.append("text")
+    //   .attr("x", (width/2))
+    //   .attr("y", 0 - (marginRatio.top / 2))
+    //   .attr("text-anchor", "middle")
+    //     .style("font-size", "16px")
+    //     .text("Number of Immigrants Subject to Removal (in millions)");
+
+    // Define the x scale as ordinal, ordinal means the data cannot be meassured by a
+    // standard of difference. This is different to a linear scale that we will use later
+    var x = d3.scale.ordinal()
+      // Domain stands for input domain, this is the data we want to display
+      .domain(letters)
+      // Range stands for Output Range, this is the width the data will take up
+      // Here it is used for the x axis. 0 is the start of our graph, width is the
+      // end of it
+      .rangeRoundBands([0, width], 0.1, 0.1);
+
+    // Here we define the x axis using the svg.axis() method. The x scale we just
+    // defined tells the axis what data to display and how big the intervals
+    // between that data is on the axis. Orient bottom means it will be shown below
+    // the bars.
+    var xAxis = d3.svg.axis()
+      .scale(x)
+      .orient("bottom");
+
+    // Here we repeat the process for the y axis. The difference is that we have numerical
+    // data, so we can use scale.linear.
+    var y = d3.scale.linear()
+      // Instead of using the whole array for the input domain, we use 0, since we
+      // want our y axis to start at 0, and the biggest value of our dataset
+      // d3.max returns the largest value of an array
+      .domain([d3.max(numbers), 0])
+      .range([0, height]);
+
+    // This is defined in the same wat the x axis is defined, except the orient is now left
+    // instead of bottom - for obvious reasons.
+    var yAxis = d3.svg.axis()
+      .scale(y)
+      .orient("left");
+
+    // Bind data to bar groups
+    var bar = svg.selectAll("g")
+      .data(numbers)
+      .enter()
+      .append("g")
+      .attr("transform", function(d, i) {
+        return "translate(" + i * barWidth + ", 0)";
+      });
+
+    // Add x axis to svgContainer
+    svg.append("g")
+      .attr("class", "x axis")
+      .call(xAxis)
+      .attr("transform", "translate(0," + height + ")");
+
+    // Add y axis
+    svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+      .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -(height / 30))
+        .attr("dy", "-2.75em")
+        .style("text-anchor", "end")
+        .text("Number of Uninsured People in the United States (in millions)");
+
+    // Add SVG rectangles that act as bars
+    // barWidth is calculated dynamically from the width divided by data.length
+    // The y attribute and height is based on the data, scaled to the height of
+    // graph. Remember input domain and output range
+    bar.append("rect")
+      .attr("class", "bar")
+      .attr("width", barWidth - 1)
+      .attr("y", function(d) {
+        return y(d);
+      })
+      .attr("height", function(d) {
+        return height - y(d);
+      });
+      // .append("text")
+      //   .attr("y", function(d) {
+      //     console.log(y(d));
+      //     return -y(d);
+      //   })
+      //   .attr("x", function(d) {
+      //     return 0;
+      //   })
+      //   .attr("dy", function(d) {
+      //     return 0;
+      //   })
+      //   .text("hi");
+
+    svg.selectAll("text")
+      .data(numbers)
+      .enter()
+      .append("text")
+        .text(function(d){ return d; })
+        .attr("x", function(d, i) {
+          return i * (width / numbers.length);
+        })
+        .attr("y", function(d, i) {
+          return height * (d * 4);
+        });
+
+    svg.append("line")
+      .style("stroke", "black")
+      .style("stroke-dasharray", 5)
+      .attr("x1", 0)
+      .attr("y1", y(10.8))
+      .attr("x2", width)
+      .attr("y2", y(10.8))
+      .attr("class", "rate-line");
+
+    svg.append("text")
+        .text("Current Rate (10.8%)")
+        .attr("y", 184)
+        .attr("x", width - (width/6))
+        .attr("class", "rate-label");
+
+    </script>
+  <body>
+
+</html>

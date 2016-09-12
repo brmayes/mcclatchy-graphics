@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="description" content="Drawing Shapes W/ D3 -" />
+  <meta charset="utf-8">
+  <title>Matching Chart Size to Container Size: 2</title>
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+  <style type="text/css">
+    /* CSS that makes chart responsive */
+    @font-face {
+      font-family: "McClatchy Sans Cond";
+      font-style: normal;
+      font-weight: 600;
+      src: url("McClatchySansCond-Semibold.oft") format("oft");
+    }
+    @font-face {
+      font-family: "McClatchy Sans";
+      font-style: normal;
+      font-weight: 400;
+      src: url("McClatchySans-Regular.otf") format("otf");
+    }
+    @font-face {
+      font-family: "McClatchy Sans";
+      font-style: normal;
+      font-weight: 700;
+      src: url("McClatchySans-Black.oft") format("oft");
+    }
+
+    body {
+      /*overflow: hidden;*/
+      font-family: "McClatchy Sans";
+    }
+
+    #chart {
+      max-width: 1000px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    #svg-container {
+      position: relative;
+      width: 100%;
+      /*padding-bottom: 100%;*/
+      overflow: hidden;
+    }
+
+    .svg-content-responsive {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    /* CSS that styles the chart */
+
+    rect {
+      fill: #EAB22D;
+      margin-left: 2px;
+      transform: translate(12px, 0);
+    }
+
+    .axis text {
+      font: 14px "McClatchy Sans", Helvetica Neue, Arial, sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+    }
+
+    .x.axis .tick text {
+      font-weight: 700;
+    }
+
+    rect.full {
+      z-index: -3;
+      fill: #F2E8CA;
+    }
+
+    .title {
+      font-family: 'McClatchy Sans Cond','Roboto Condensed Medium','HelveticaNeue-CondensedBold',sans-serif !important;
+      font-size: 18px;
+      color: black;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 14px;
+    }
+  </style>
+
+</head>
+
+<body>
+  <div id="chart"></div>
+
+
+  <script>
+    // Get the margin to width ratio as a percent
+    // using the margin object properties
+    function getRatio(side) {
+      return ((margin[side] / width) * 100) + "%";
+    }
+
+    // Simple example dataset
+    var letters = [ "Trump", "Clinton" ];
+    var numbers = [ 7, .69 ];
+
+    var immNums = [
+      {
+        "candidate": "Trump",
+        "numbers": 7,
+        "diff": 4.3
+     },
+     {
+       "candidate": "Clinton",
+       "numbers": .69,
+       "diff": 10.61
+    }
+  ];
+
+    // Declare Dimensions to create graph
+    // Margin is used to show x and y axes
+    // Size here is declared in pixels, although this
+    // defines the relative values, since the chart changes depending
+    // on container
+    var margin = {
+        left: 50,
+        top: 80,
+        right: 50,
+        bottom: 30
+      },
+      width = 700,
+      height = 400,
+      // marginRatio converts margin absolute values to
+      // percent values to keep SVG responsive
+      marginRatio = {
+        left: getRatio("left"),
+        top: getRatio("top"),
+        right: getRatio("right"),
+        bottom: getRatio("bottom")
+      },
+      barWidth = .65*(width / immNums.length) - 10,
+      title = "Immigrants Subject to Deportation",
+      subtitle = "With 11.3 million undocumented immigrants currently in the United States...";
+
+    var svg = d3.select("div#chart")
+      // Create div to act as SVG container
+      .append("div")
+      .attr("id", "svg-container")
+      // Add SVG that will contain Graph elements
+      .append("svg")
+      // Add margin to show axes
+      .style("padding", marginRatio.top + " " + marginRatio.right + " " + marginRatio.bottom + " " + marginRatio.left)
+      // Preserve aspect ratio xMinYmin ensures SVG fills #svg-container
+      .attr("preserveAspectRatio", "xMinYMin meet")
+      // Sets the viewbox, for more info on viewbox, combined with preveserveAspectRatio, this is what turns the bar chart
+      // into a responsive bar chart
+      .attr("viewBox", "0 -20 " + (width + margin.left + margin.right) + " " + (height + margin.top + margin.bottom))
+      // Id to target with CSS
+      .attr("id", "svg-content-responsive");
+
+    // Define the x scale as ordinal, ordinal means the data cannot be meassured by a
+    // standard of difference. This is different to a linear scale that we will use later
+    var x = d3.scale.ordinal()
+      // Domain stands for input domain, this is the data we want to display
+      .domain(letters)
+      // Range stands for Output Range, this is the width the data will take up
+      // Here it is used for the x axis. 0 is the start of our graph, width is the
+      // end of it
+      .rangeRoundBands([0, (width/1.5)], 0.1, 0.1);
+
+    // Here we define the x axis using the svg.axis() method. The x scale we just
+    // defined tells the axis what data to display and how big the intervals
+    // between that data is on the axis. Orient bottom means it will be shown below
+    // the bars.
+    var xAxis = d3.svg.axis()
+      .scale(x)
+      .orient("bottom");
+
+    // Here we repeat the process for the y axis. The difference is that we have numerical
+    // data, so we can use scale.linear.
+    var y = d3.scale.linear()
+      // Instead of using the whole array for the input domain, we use 0, since we
+      // want our y axis to start at 0, and the biggest value of our dataset
+      // d3.max returns the largest value of an array
+      // .domain([d3.max(numbers), 0])
+      .domain([11.3, 0])
+      .range([0, height]);
+
+    // This is defined in the same wat the x axis is defined, except the orient is now left
+    // instead of bottom - for obvious reasons.
+    var yAxis = d3.svg.axis()
+      .scale(y)
+      .orient("left");
+
+    // Bind data to bar groups
+    var bar = svg.selectAll("g")
+      // .data(numbers)
+      .data(immNums)
+      .enter()
+      .append("g")
+      .attr("transform", function(d, i) {
+        return "translate(" + i * (barWidth + 10) + ", 0)";
+      });
+
+    // Add x axis to svgContainer
+    svg.append("g")
+      .attr("class", "x axis")
+      .call(xAxis)
+      .attr("transform", "translate(0," + height + ")");
+
+    // Add y axis
+    svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+      .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -(height / 10))
+        .attr("dy", "-2.75em")
+        .style("text-anchor", "end");
+
+    // Add SVG rectangles that act as bars
+    // barWidth is calculated dynamically from the width divided by data.length
+    // The y attribute and height is based on the data, scaled to the height of
+    // graph. Remember input domain and output range
+
+    bar.append("rect")
+      .attr("class", "bar full")
+      .attr("width", barWidth - 1)
+      .attr("y", function(d) {
+        // return 22;
+        return 0;
+      })
+      .attr("height", function(d) {
+        return height - y(d.diff);
+      });
+
+    bar.append("rect")
+      .attr("class", "bar")
+      .attr("width", barWidth - 1)
+      .attr("y", function(d) {
+        return y(d.numbers);
+      })
+      .attr("height", function(d) {
+        return height - y(d.numbers);
+      });
+
+    svg.selectAll("text")
+      .data(numbers)
+      .enter()
+      .append("text")
+        .text(function(d){ return d; })
+        .attr("x", function(d, i) {
+          return i * (width / numbers.length);
+        })
+        .attr("y", function(d, i) {
+          return height * (d * 4);
+        });
+
+    svg.append("g")
+      .append("text")
+        .text(title)
+        .attr("y", -(margin.top / 1.1))
+        .attr("class", "title");
+
+    svg.append("text")
+      .text(subtitle)
+      .attr("y", -(margin.top / 1.8))
+      .attr("class", "subtitle");
+
+    svg.append("text")
+      .text(subtitle)
+      .attr("y", -(margin.top / 1.8))
+      .attr("class", "subtitle");
+
+    </script>
+  <body>
+
+</html>
